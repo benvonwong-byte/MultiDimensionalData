@@ -1,15 +1,19 @@
 import { create } from 'zustand';
-import type { Person, PersonId, DimensionId, ChannelSlot } from '../data/types';
+import type { Person, PersonId, DimensionId, ChannelSlot, RelationType } from '../data/types';
 import { celebrities } from '../data/celebrities';
 import { DIMENSIONS } from '../data/dimensions';
 
 const ALL_CHANNELS: ChannelSlot[] = ['h', 'v', 'color', 'size'];
+
+const REL_TYPES: (RelationType | 'all')[] = ['all', 'influenced_by', 'collaborated', 'mentored_by', 'rivaled', 'related_to'];
 
 interface ExplorerStore {
   people: Person[];
   cursorId: PersonId;
   channels: Record<ChannelSlot, DimensionId | null>;
   hoveredPersonId: PersonId | null;
+  showRelationships: boolean;
+  highlightedRelType: RelationType | 'all';
 
   setCursor: (id: PersonId) => void;
   assignChannel: (ch: ChannelSlot, dimId: DimensionId) => void;
@@ -17,6 +21,8 @@ interface ExplorerStore {
   rotateDimension: (ch: 'h' | 'v', direction: 1 | -1) => void;
   hoverPerson: (id: PersonId | null) => void;
   addPerson: (person: Person) => void;
+  toggleRelationships: () => void;
+  cycleRelType: () => void;
 }
 
 export const useStore = create<ExplorerStore>()((set, get) => ({
@@ -24,6 +30,8 @@ export const useStore = create<ExplorerStore>()((set, get) => ({
   cursorId: celebrities[0].id,
   channels: { h: null, v: null, color: null, size: null },
   hoveredPersonId: null,
+  showRelationships: false,
+  highlightedRelType: 'all' as RelationType | 'all',
 
   setCursor: (id) => set({ cursorId: id }),
 
@@ -68,5 +76,16 @@ export const useStore = create<ExplorerStore>()((set, get) => ({
 
   addPerson: (person) => {
     set({ people: [...get().people, person] });
+  },
+
+  toggleRelationships: () => {
+    set(s => ({ showRelationships: !s.showRelationships }));
+  },
+
+  cycleRelType: () => {
+    const { highlightedRelType } = get();
+    const idx = REL_TYPES.indexOf(highlightedRelType);
+    const next = (idx + 1) % REL_TYPES.length;
+    set({ highlightedRelType: REL_TYPES[next] });
   },
 }));

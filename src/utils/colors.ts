@@ -115,6 +115,16 @@ export const SIZE_SCALE_MAP: Record<string, Record<string, number>> = {
   },
 };
 
+import type { RelationType } from '../data/types';
+
+export const RELATIONSHIP_COLORS: Record<RelationType, string> = {
+  influenced_by: '#a78bfa',
+  collaborated: '#34d399',
+  mentored_by: '#fbbf24',
+  rivaled: '#f87171',
+  related_to: '#60a5fa',
+};
+
 const DEFAULT_COLOR = '#6b7280';
 const DEFAULT_SCALE = 1.0;
 

@@ -1,6 +1,9 @@
+import { useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { dimensionMap } from '../data/dimensions';
 import { ZZCell } from './ZZCell';
+import { RankArm } from './RankArm';
+import { clearCellPositions } from '../utils/cellPositions';
 import type { Person, DimensionDef } from '../data/types';
 
 function getRank(people: Person[], dim: DimensionDef, cursor: Person): Person[] {
@@ -17,19 +20,7 @@ function splitRank(rank: Person[], cursorId: string): { negward: Person[]; poswa
   };
 }
 
-function Connector({ color, direction }: { color: string; direction: 'h' | 'v' }) {
-  return (
-    <div style={{
-      width: direction === 'h' ? 20 : 2,
-      height: direction === 'h' ? 2 : 20,
-      background: `${color}66`,
-      flexShrink: 0,
-      borderRadius: 1,
-    }} />
-  );
-}
-
-function RankLabel({ dim, value, side }: { dim: DimensionDef; value: string; side: 'left' | 'right' | 'top' | 'bottom' }) {
+function RankLabel({ dim, value, count, side }: { dim: DimensionDef; value: string; count: number; side: 'left' | 'right' | 'top' | 'bottom' }) {
   const isVertical = side === 'top' || side === 'bottom';
   return (
     <div style={{
@@ -37,7 +28,7 @@ function RankLabel({ dim, value, side }: { dim: DimensionDef; value: string; sid
       flexDirection: isVertical ? 'row' : 'column',
       alignItems: 'center',
       gap: 4,
-      padding: isVertical ? '8px 0' : '0 12px',
+      padding: isVertical ? '6px 0' : '0 10px',
       flexShrink: 0,
     }}>
       <span style={{
@@ -49,11 +40,11 @@ function RankLabel({ dim, value, side }: { dim: DimensionDef; value: string; sid
       }}>
         {dim.shortLabel}
       </span>
-      <span style={{
-        fontSize: 11,
-        color: 'var(--color-text-muted)',
-      }}>
+      <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
         {value}
+      </span>
+      <span style={{ fontSize: 9, color: `${dim.color}88` }}>
+        ({count})
       </span>
     </div>
   );
@@ -66,6 +57,10 @@ export function ZZView() {
   const vDimId = useStore(s => s.channels.v);
 
   const cursor = people.find(p => p.id === cursorId);
+
+  // Clear cell positions on re-render (they'll be re-registered by ZZCell)
+  useEffect(() => { clearCellPositions(); });
+
   if (!cursor) return null;
 
   const hDim = hDimId ? dimensionMap.get(hDimId) : null;
@@ -120,23 +115,8 @@ export function ZZView() {
       {/* V negward (above cursor) */}
       {vDim && (
         <>
-          <RankLabel dim={vDim} value={vValue} side="top" />
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 0,
-            overflow: 'auto',
-            maxHeight: '30vh',
-            paddingBottom: 4,
-          }}>
-            {vSplit.negward.map((p, i) => (
-              <div key={p.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <ZZCell person={p} />
-                <Connector color={vDim.color} direction="v" />
-              </div>
-            ))}
-          </div>
+          <RankLabel dim={vDim} value={vValue} count={vRank.length} side="top" />
+          <RankArm items={vSplit.negward} direction="v" side="neg" dimColor={vDim.color} />
         </>
       )}
 
@@ -149,83 +129,26 @@ export function ZZView() {
         width: '100%',
         justifyContent: 'center',
       }}>
-        {/* H label left */}
-        {hDim && <RankLabel dim={hDim} value={hValue} side="left" />}
+        {hDim && <RankLabel dim={hDim} value={hValue} count={hRank.length} side="left" />}
 
-        {/* H negward */}
         {hDim && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0,
-            overflow: 'auto',
-            maxWidth: '30vw',
-            flexShrink: 1,
-          }}>
-            {hSplit.negward.map(p => (
-              <div key={p.id} style={{ display: 'flex', alignItems: 'center' }}>
-                <ZZCell person={p} />
-                <Connector color={hDim.color} direction="h" />
-              </div>
-            ))}
-          </div>
+          <RankArm items={hSplit.negward} direction="h" side="neg" dimColor={hDim.color} />
         )}
 
-        {/* Connector into cursor from negward */}
         {hDim && hSplit.negward.length === 0 && vDim && (
           <div style={{ width: 12 }} />
         )}
 
-        {/* Cursor cell */}
         <ZZCell person={cursor} isCursor />
 
-        {/* H posward */}
         {hDim && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0,
-            overflow: 'auto',
-            maxWidth: '30vw',
-            flexShrink: 1,
-          }}>
-            {hSplit.posward.map(p => (
-              <div key={p.id} style={{ display: 'flex', alignItems: 'center' }}>
-                <Connector color={hDim.color} direction="h" />
-                <ZZCell person={p} />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* H label right */}
-        {hDim && (
-          <div style={{ padding: '0 8px', fontSize: 14, color: `${hDim.color}66`, flexShrink: 0 }}>
-            {hSplit.posward.length > 0 ? '' : ''}
-          </div>
+          <RankArm items={hSplit.posward} direction="h" side="pos" dimColor={hDim.color} />
         )}
       </div>
 
       {/* V posward (below cursor) */}
       {vDim && (
-        <>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 0,
-            overflow: 'auto',
-            maxHeight: '30vh',
-            paddingTop: 4,
-          }}>
-            {vSplit.posward.map(p => (
-              <div key={p.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Connector color={vDim.color} direction="v" />
-                <ZZCell person={p} />
-              </div>
-            ))}
-          </div>
-        </>
+        <RankArm items={vSplit.posward} direction="v" side="pos" dimColor={vDim.color} />
       )}
     </div>
   );

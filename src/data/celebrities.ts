@@ -1,6 +1,7 @@
 import { people } from './people';
+import { richDataMap } from './richData';
+import type { Person } from './types';
 
-// Curated ~40 famous people for initial 3D view — balanced across fields, eras, genders, regions
 const curatedIds = new Set([
   // Science
   'albert-einstein', 'marie-curie', 'nikola-tesla', 'stephen-hawking', 'tu-youyou',
@@ -28,4 +29,6 @@ const curatedIds = new Set([
   'neil-armstrong', 'jonas-salk',
 ]);
 
-export const celebrities = people.filter(p => curatedIds.has(p.id));
+export const celebrities: Person[] = people
+  .filter(p => curatedIds.has(p.id))
+  .map(p => ({ ...p, ...richDataMap[p.id] }));
