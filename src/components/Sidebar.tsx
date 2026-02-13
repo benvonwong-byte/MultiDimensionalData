@@ -220,11 +220,9 @@ export function Sidebar() {
         padding: '8px 14px', borderTop: '1px solid var(--color-border)',
         fontSize: 10, color: 'var(--color-text-muted)', lineHeight: 1.6,
       }}>
-        <span style={{ fontFamily: 'var(--font-mono)' }}>Arrow keys</span> step &middot;{' '}
+        <span style={{ fontFamily: 'var(--font-mono)' }}>Arrow keys</span> step cursor &middot;{' '}
         <span style={{ fontFamily: 'var(--font-mono)' }}>[ ]</span> rotate H &middot;{' '}
-        <span style={{ fontFamily: 'var(--font-mono)' }}>{'{ }'}</span> rotate V<br />
-        <span style={{ fontFamily: 'var(--font-mono)' }}>r</span> relationships &middot;{' '}
-        <span style={{ fontFamily: 'var(--font-mono)' }}>t</span> cycle type
+        <span style={{ fontFamily: 'var(--font-mono)' }}>{'{ }'}</span> rotate V
       </div>
     </div>
   );

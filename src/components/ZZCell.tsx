@@ -1,8 +1,6 @@
-import { useRef, useLayoutEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { resolveBlockColor, resolveBlockScale } from '../utils/colors';
 import { dimensionMap } from '../data/dimensions';
-import { registerCellPosition } from '../utils/cellPositions';
 import type { Person } from '../data/types';
 
 interface Props {
@@ -16,7 +14,6 @@ export function ZZCell({ person, isCursor }: Props) {
   const hoveredId = useStore(s => s.hoveredPersonId);
   const colorDim = useStore(s => s.channels.color);
   const sizeDim = useStore(s => s.channels.size);
-  const ref = useRef<HTMLDivElement>(null);
 
   const isHovered = hoveredId === person.id;
   const bgColor = resolveBlockColor(colorDim, person);
@@ -26,30 +23,13 @@ export function ZZCell({ person, isCursor }: Props) {
   const size = baseSize * scale;
 
   const tierBadge = person.impact.culturalInfluenceTier;
+
+  // Get dimension values for subtitle
   const fieldDim = dimensionMap.get('field');
   const field = fieldDim ? fieldDim.extractValue(person) : '';
 
-  const imgSize = isCursor ? 36 : 24;
-  const initial = person.shortName.charAt(0).toUpperCase();
-
-  // Register cell position for relationship overlay
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const viewport = el.closest('[data-viewport]');
-    const vr = viewport?.getBoundingClientRect() ?? { left: 0, top: 0 };
-    registerCellPosition(
-      person.id,
-      rect.left + rect.width / 2 - vr.left,
-      rect.top + rect.height / 2 - vr.top,
-    );
-  });
-
   return (
     <div
-      ref={ref}
-      data-cell-id={person.id}
       onClick={() => setCursor(person.id)}
       onMouseEnter={() => hoverPerson(person.id)}
       onMouseLeave={() => hoverPerson(null)}
@@ -80,7 +60,6 @@ export function ZZCell({ person, isCursor }: Props) {
         position: 'relative',
         flexShrink: 0,
         transform: isHovered && !isCursor ? 'scale(1.08)' : undefined,
-        gap: 2,
       }}
     >
       {/* Tier badge */}
@@ -96,44 +75,9 @@ export function ZZCell({ person, isCursor }: Props) {
         {tierBadge}
       </span>
 
-      {/* Image / Avatar */}
-      {person.imageUrl ? (
-        <img
-          src={person.imageUrl}
-          alt=""
-          loading="lazy"
-          width={imgSize}
-          height={imgSize}
-          style={{
-            width: imgSize,
-            height: imgSize,
-            borderRadius: '50%',
-            objectFit: 'cover',
-            border: isCursor ? '2px solid rgba(255,255,255,0.4)' : `1px solid ${bgColor}55`,
-            flexShrink: 0,
-          }}
-        />
-      ) : (
-        <div style={{
-          width: imgSize,
-          height: imgSize,
-          borderRadius: '50%',
-          background: `${bgColor}66`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: isCursor ? 16 : 12,
-          fontWeight: 700,
-          color: isCursor ? '#fff' : 'var(--color-text)',
-          flexShrink: 0,
-        }}>
-          {initial}
-        </div>
-      )}
-
       {/* Name */}
       <span style={{
-        fontSize: isCursor ? 12 : 10,
+        fontSize: isCursor ? 14 : 11,
         fontWeight: 700,
         color: isCursor ? '#fff' : 'var(--color-text)',
         textAlign: 'center',
@@ -149,8 +93,9 @@ export function ZZCell({ person, isCursor }: Props) {
 
       {/* Field subtitle */}
       <span style={{
-        fontSize: isCursor ? 9 : 8,
+        fontSize: isCursor ? 10 : 9,
         color: isCursor ? 'rgba(255,255,255,0.7)' : 'var(--color-text-muted)',
+        marginTop: 2,
         textAlign: 'center',
         overflow: 'hidden',
         textOverflow: 'ellipsis',

@@ -2,8 +2,6 @@ import { useEffect, useCallback } from 'react';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
 import { ZZView } from './components/ZZView';
 import { Sidebar } from './components/Sidebar';
-import { DetailPanel } from './components/DetailPanel';
-import { RelationshipOverlay } from './components/RelationshipOverlay';
 import { useStore } from './store/useStore';
 import { dimensionMap } from './data/dimensions';
 import type { ChannelSlot, Person, DimensionDef } from './data/types';
@@ -29,24 +27,9 @@ export default function App() {
   };
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Skip when typing in an input
-    if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'SELECT') return;
-
-    const { people, cursorId, channels, setCursor, rotateDimension, toggleRelationships, cycleRelType } = useStore.getState();
+    const { people, cursorId, channels, setCursor, rotateDimension } = useStore.getState();
     const cursor = people.find(p => p.id === cursorId);
     if (!cursor) return;
-
-    // Relationship overlay
-    if (e.key === 'r') {
-      e.preventDefault();
-      toggleRelationships();
-      return;
-    }
-    if (e.key === 't') {
-      e.preventDefault();
-      cycleRelType();
-      return;
-    }
 
     // Dimension rotation
     if (e.key === '[') {
@@ -121,10 +104,8 @@ export default function App() {
         <Sidebar />
 
         {/* ZZ Viewport */}
-        <div data-viewport style={{ flex: 1, position: 'relative', overflow: 'hidden', minHeight: 0 }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', minHeight: 0 }}>
           <ZZView />
-          <RelationshipOverlay />
-          <DetailPanel />
         </div>
       </div>
     </DndContext>
